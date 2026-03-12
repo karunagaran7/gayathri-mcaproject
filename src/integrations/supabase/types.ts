@@ -38,6 +38,30 @@ export type Database = {
         }
         Relationships: []
       }
+      prompt_history: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          prompt: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          prompt: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          prompt?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       saved_prompts: {
         Row: {
           category: string

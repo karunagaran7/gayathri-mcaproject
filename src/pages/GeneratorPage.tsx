@@ -58,12 +58,21 @@ export default function GeneratorPage() {
     setSelections((prev) => ({ ...prev, [fieldId]: value }));
   };
 
-  const generate = () => {
+  const generate = async () => {
     const prompt = config.templateFn(selections);
     setGeneratedPrompt(prompt);
     setEnhancedPrompt("");
     setShowEnhanced(false);
     setTimeout(() => outputRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+
+    // Auto-save to history for authenticated users
+    if (user) {
+      await supabase.from("prompt_history").insert({
+        user_id: user.id,
+        prompt,
+        category: type || "unknown",
+      });
+    }
   };
 
   const resetAll = () => {
@@ -154,19 +163,18 @@ export default function GeneratorPage() {
   };
 
   const savePrompt = async () => {
-    const promptToSave = showEnhanced && enhancedPrompt ? enhancedPrompt : generatedPrompt;
-    if (user) {
-      const { error } = await supabase.from("saved_prompts").insert({
-        user_id: user.id,
-        prompt: promptToSave,
-        category: type || "unknown",
-      });
-      if (error) { toast.error("Failed to save"); return; }
-    } else {
-      const saved = JSON.parse(localStorage.getItem("savedPrompts") || "[]");
-      saved.push({ prompt: promptToSave, category: type, date: new Date().toISOString() });
-      localStorage.setItem("savedPrompts", JSON.stringify(saved));
+    if (!user) {
+      toast.error("Please sign in to save prompts");
+      navigate("/auth");
+      return;
     }
+    const promptToSave = showEnhanced && enhancedPrompt ? enhancedPrompt : generatedPrompt;
+    const { error } = await supabase.from("saved_prompts").insert({
+      user_id: user.id,
+      prompt: promptToSave,
+      category: type || "unknown",
+    });
+    if (error) { toast.error("Failed to save"); return; }
     toast.success("Prompt saved!");
   };
 
