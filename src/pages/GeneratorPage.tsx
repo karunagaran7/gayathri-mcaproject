@@ -153,11 +153,20 @@ export default function GeneratorPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const savePrompt = () => {
+  const savePrompt = async () => {
     const promptToSave = showEnhanced && enhancedPrompt ? enhancedPrompt : generatedPrompt;
-    const saved = JSON.parse(localStorage.getItem("savedPrompts") || "[]");
-    saved.push({ prompt: promptToSave, category: type, date: new Date().toISOString() });
-    localStorage.setItem("savedPrompts", JSON.stringify(saved));
+    if (user) {
+      const { error } = await supabase.from("saved_prompts").insert({
+        user_id: user.id,
+        prompt: promptToSave,
+        category: type || "unknown",
+      });
+      if (error) { toast.error("Failed to save"); return; }
+    } else {
+      const saved = JSON.parse(localStorage.getItem("savedPrompts") || "[]");
+      saved.push({ prompt: promptToSave, category: type, date: new Date().toISOString() });
+      localStorage.setItem("savedPrompts", JSON.stringify(saved));
+    }
     toast.success("Prompt saved!");
   };
 
