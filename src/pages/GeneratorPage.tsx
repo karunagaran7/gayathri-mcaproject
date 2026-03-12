@@ -58,12 +58,21 @@ export default function GeneratorPage() {
     setSelections((prev) => ({ ...prev, [fieldId]: value }));
   };
 
-  const generate = () => {
+  const generate = async () => {
     const prompt = config.templateFn(selections);
     setGeneratedPrompt(prompt);
     setEnhancedPrompt("");
     setShowEnhanced(false);
     setTimeout(() => outputRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+
+    // Auto-save to history for authenticated users
+    if (user) {
+      await supabase.from("prompt_history").insert({
+        user_id: user.id,
+        prompt,
+        category: type || "unknown",
+      });
+    }
   };
 
   const resetAll = () => {
