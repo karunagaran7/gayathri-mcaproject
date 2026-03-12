@@ -27,7 +27,7 @@ export default function GeneratorPage() {
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [showEnhanced, setShowEnhanced] = useState(false);
   const outputRef = useRef<HTMLDivElement>(null);
-
+  const { user } = useAuth();
   if (!config || !category) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
