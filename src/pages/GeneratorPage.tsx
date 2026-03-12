@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function GeneratorPage() {
   const { type } = useParams<{ type: string }>();
@@ -26,7 +27,7 @@ export default function GeneratorPage() {
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [showEnhanced, setShowEnhanced] = useState(false);
   const outputRef = useRef<HTMLDivElement>(null);
-
+  const { user } = useAuth();
   if (!config || !category) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -152,11 +153,20 @@ export default function GeneratorPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const savePrompt = () => {
+  const savePrompt = async () => {
     const promptToSave = showEnhanced && enhancedPrompt ? enhancedPrompt : generatedPrompt;
-    const saved = JSON.parse(localStorage.getItem("savedPrompts") || "[]");
-    saved.push({ prompt: promptToSave, category: type, date: new Date().toISOString() });
-    localStorage.setItem("savedPrompts", JSON.stringify(saved));
+    if (user) {
+      const { error } = await supabase.from("saved_prompts").insert({
+        user_id: user.id,
+        prompt: promptToSave,
+        category: type || "unknown",
+      });
+      if (error) { toast.error("Failed to save"); return; }
+    } else {
+      const saved = JSON.parse(localStorage.getItem("savedPrompts") || "[]");
+      saved.push({ prompt: promptToSave, category: type, date: new Date().toISOString() });
+      localStorage.setItem("savedPrompts", JSON.stringify(saved));
+    }
     toast.success("Prompt saved!");
   };
 
