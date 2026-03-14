@@ -37,7 +37,6 @@ export function Header() {
           </span>
         </Link>
         <nav className="flex items-center gap-4">
-          <Link to="/" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Home</Link>
           {user && <Link to="/saved" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Saved</Link>}
 
           {user ? (
